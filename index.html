@@ -2,48 +2,150 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Vedansh APK</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My Phone Remote</title>
 <style>
-body{
-  margin:0;
-  min-height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  background:#0d0b18;
-  color:white;
-  font-family:Arial,sans-serif;
-  text-align:center;
-}
-.box{
-  width:90%;
-  max-width:500px;
-  padding:40px 20px;
-  background:#181329;
-  border-radius:20px;
-}
-h1{color:#a970ff;}
-p{color:#bbb;}
-.btn{
-  display:inline-block;
-  margin-top:20px;
-  padding:15px 30px;
-  background:#7c3aed;
-  color:white;
-  text-decoration:none;
-  border-radius:12px;
-  font-size:18px;
-  font-weight:bold;
-}
-.btn:hover{background:#9333ea;}
+body{margin:0;background:#12001f;color:white;font-family:Arial;text-align:center}
+header{padding:25px;background:#260044}
+h1{margin:0;color:#d99cff}
+.card{margin:15px;padding:20px;background:#210038;border-radius:18px}
+button{width:90%;padding:15px;margin:7px;border:0;border-radius:12px;
+background:#8b2be2;color:white;font-size:16px;font-weight:bold}
+button:active{transform:scale(.97)}
+.info{font-size:17px;line-height:1.8}
+video{width:90%;max-width:500px;border-radius:15px;margin-top:15px}
 </style>
 </head>
+
 <body>
-<div class="box">
-  <h1>Vedansh APK</h1>
-  <p>My Phone Remote</p>
-  <a class="btn" href="app-debug.apk" download>⬇ Download APK</a>
+
+<header>
+<h1>📱 My Phone Remote</h1>
+<p>Permission-based Phone Dashboard</p>
+</header>
+
+<div class="card">
+<h2>🔋 Battery</h2>
+<div id="battery" class="info">Loading...</div>
 </div>
-</body>
+
+<div class="card">
+<h2>📱 Device Info</h2>
+<div id="device" class="info"></div>
+</div>
+
+<div class="card">
+<h2>📷 Camera / Video</h2>
+<p>Camera permission is required.</p>
+<button onclick="startCamera()">📷 Open Camera</button>
+<button onclick="stopCamera()">⏹ Stop Camera</button>
+<video id="camera" autoplay playsinline></video>
+</div>
+
+<div class="card">
+<h2>📍 Location</h2>
+<button onclick="getLocation()">📍 Get My Location</button>
+<div id="location" class="info"></div>
+</div>
+
+<div class="card">
+<h2>📤 Share</h2>
+<button onclick="sharePage()">📤 Android Share</button>
+</div>
+
+<div class="card">
+<h2>🔦 Flashlight</h2>
+<p>Flashlight support depends on the phone/browser.</p>
+<button onclick="alert('Flashlight control requires native Android camera support.')">
+🔦 Flashlight
+</button>
+</div>
+
+<script>
+async function batteryInfo(){
+ try{
+  if(navigator.getBattery){
+   const b=await navigator.getBattery();
+   function update(){
+    document.getElementById("battery").innerHTML=
+    "Battery: "+Math.round(b.level*100)+"%<br>"+
+    "Charging: "+(b.charging?"Yes":"No");
+   }
+   update();
+   b.addEventListener("levelchange",update);
+   b.addEventListener("chargingchange",update);
+  }else{
+   document.getElementById("battery").innerText="Battery API unavailable";
+  }
+ }catch(e){
+  document.getElementById("battery").innerText="Battery information unavailable";
+ }
+}
+
+function deviceInfo(){
+ document.getElementById("device").innerHTML=
+ "Platform: "+navigator.platform+"<br>"+
+ "Language: "+navigator.language+"<br>"+
+ "Online: "+(navigator.onLine?"Yes":"No");
+}
+
+let stream=null;
+
+async function startCamera(){
+ try{
+  stream=await navigator.mediaDevices.getUserMedia({
+   video:true,
+   audio:true
+  });
+  document.getElementById("camera").srcObject=stream;
+ }catch(e){
+  alert("Camera/Microphone permission denied or unavailable.");
+ }
+}
+
+function stopCamera(){
+ if(stream){
+  stream.getTracks().forEach(track=>track.stop());
+  stream=null;
+  document.getElementById("camera").srcObject=null;
+ }
+}
+
+function getLocation(){
+ if(!navigator.geolocation){
+  document.getElementById("location").innerText="Location unavailable";
+  return;
+ }
+
+ navigator.geolocation.getCurrentPosition(
+  p=>{
+   document.getElementById("location").innerHTML=
+   "Latitude: "+p.coords.latitude+"<br>"+
+   "Longitude: "+p.coords.longitude;
+  },
+  ()=>{
+   document.getElementById("location").innerText=
+   "Location permission denied.";
+  }
+ );
+}
+
+async function sharePage(){
+ if(navigator.share){
+  try{
+   await navigator.share({
+    title:"My Phone Remote",
+    text:"My Phone Remote dashboard"
+   });
+  }catch(e){}
+ }else{
+  alert("Android Share is not supported here.");
+ }
+}
+
+batteryInfo();
+deviceInfo();
+</script>
+
+<div style="margin:25px;text-align:center"><a href="MyPhoneRemote.apk" download style="display:inline-block;padding:16px 28px;background:#8b2be2;color:white;text-decoration:none;border-radius:12px;font:bold 18px Arial">📥 Download My Phone Remote APK</a></div></body>
 </html>
